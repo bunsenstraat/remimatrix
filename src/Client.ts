@@ -34,7 +34,7 @@ export class WorkSpacePlugin extends PluginClient {
 
   constructor() {
     super();
-    createClient(new PluginClient())
+
     createClient(this);
     this.onload().then(async () => {
       //console.log("workspace client loaded", this);
