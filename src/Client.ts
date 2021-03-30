@@ -34,10 +34,15 @@ export class WorkSpacePlugin extends PluginClient {
 
   constructor() {
     super();
-
+    console.log("CONSTRUCTOR")
     createClient(this);
-    this.onload().then(async () => {
-      //console.log("workspace client loaded", this);
+    this.onload().then(async (x) => {
+      console.log("client loaded", JSON.stringify(this));
+      try{
+        await this.call("solidityUnitTesting","testFromSource","")
+      }catch(e){
+        console.log("not available")
+      }
       /*
       let acc = await this.call("udapp","getSettings")
       console.log(acc)
@@ -57,11 +62,14 @@ export class WorkSpacePlugin extends PluginClient {
         console.log("comp fin",x)
       })
       */
-      //await this.setCallBacks();
+      await this.setCallBacks();
+    }).catch(async (e)=>{
+      console.log("ERROR CONNECTING",e)
     });
   }
 
   async setCallBacks() {
+    console.log("set listeners")
     let me = this;
     this.on("fileManager", "currentFileChanged", function (x) {
       console.log("file changed", x);
@@ -73,13 +81,32 @@ export class WorkSpacePlugin extends PluginClient {
       me.log(x);
     });
 
-    this.on("solidity", "compilationFinished", function (x) {
-      console.log("compile finished", x);
-      me.log(x);
+    this.on("solidity", "compilationFinished", function (target, source, version, data) {
+      console.log("compile finished", target, source, version,  data);
     });
 
     this.on("fileManager", "fileAdded", function (x) {
-      console.log("added", x);
+      console.log("added file", x);
+      me.log(x);
+    });
+
+    this.on("fileExplorers", "createWorkspace", function (x) {
+      console.log("ws create", x);
+      me.log(x);
+    });
+
+    this.on("fileExplorers", "setWorkspace", function (x) {
+      console.log("ws set", x);
+      me.log(x);
+    });
+
+    this.on("fileExplorers", "deleteWorkspace", function (x) {
+      console.log("wS DELETE", x);
+      me.log(x);
+    });
+
+    this.on("fileExplorers", "renameWorkspace", function (x) {
+      console.log("wS rn", x);
       me.log(x);
     });
   }
@@ -89,6 +116,110 @@ export class WorkSpacePlugin extends PluginClient {
   }
 
   async test(p: string) {}
+
+  async activate(){
+    this.call("manager","activatePlugin","remixd")
+  }
+
+  async deactivate(){
+    this.call("manager","deactivatePlugin","111")
+  }
+
+  async getresult(){
+    let r = await this.call("solidity","getCompilationResult")
+    console.log("RESULT", r)
+  }
+
+  async gitbranches(){
+    let r = await this.call("dGitProvider","branches")
+    console.log("branches", r)
+  }
+  async gitbranch(dir:string){
+    let r = await this.call("dGitProvider","branch",dir)
+  }
+
+  async gitcurrentbranch(){
+    let r = await this.call("dGitProvider","currentbranch")
+    console.log(r)
+  }
+
+  async gitcheckout(dir:string){
+    let r = await this.call("dGitProvider","checkout",dir)
+  }
+
+  async gitinit(dir:string){
+    let s = await this.call("fileExplorers","getCurrentWorkspace")
+    let r = await this.call("dGitProvider","init")
+  }
+
+  async gitstatus(dir:string){
+    let r = await this.call("dGitProvider","status",'HEAD')
+    console.log("git status ", r)
+  }
+
+  async gitadd(dir:string){
+    let r = await this.call("dGitProvider","add",dir)
+    console.log("git add ", r)
+  }
+
+  async gitremove(dir:string){
+    let r = await this.call("dGitProvider","rm",dir)
+    console.log("git rm ", r)
+  }
+
+  async gitlog(){
+    let r = await this.call("dGitProvider","log",'HEAD')
+    console.log("git log ", r)
+  }
+
+  async gitcommit(){
+    let r = await this.call("dGitProvider","commit",{})
+    console.log("git log ", r)
+  }
+
+  async gitlsfiles(){
+    let r = await this.call("dGitProvider","lsfiles",'HEAD')
+    console.log("git log ", r)
+  }
+
+  async gitresolveref(){
+    let r = await this.call("dGitProvider","resolveref",'HEAD')
+    console.log("git resolve ", r)
+  }
+
+  async gitreadblob(file:string){
+    let c = await this.call("dGitProvider","log",'HEAD')
+    console.log(c[c.length-1].oid)
+    let r = await this.call("dGitProvider","readblob",{oid:c[c.length-1].oid, filepath:"README.txt"})
+    console.log("git blob ", r)
+  }
+
+  async ipfspush()
+  {
+    await this.call("dGitProvider", "push");
+  }
+
+  async ipfspull(cid:string){
+    try{
+    await this.call("dGitProvider", "pull", cid);
+    }catch(e){
+
+    }
+  }
+
+  async ipfsConfig(){
+    try{
+      let r = await this.call("dGitProvider", "setIpfsConfig", {
+        host: 'localhost',
+        port: 5002,
+        protocol: 'http',
+        ipfsurl: 'https://ipfsgw.komputing.org/ipfs/'
+      });
+      console.log(r)
+      }catch(e){
+        console.log(e)
+      } 
+  }
 
   async read(dir: string) {
     let files = await this.call("fileManager", "readdir", dir);
@@ -106,6 +237,10 @@ export class WorkSpacePlugin extends PluginClient {
 
   async switchfile(dir: string) {
     var files = await this.call("fileManager", "switchFile", dir);
+  }
+
+  async zip(){
+    let r = await this.call("dGitProvider","zip")
   }
 
   async fetch(dir: string) {
@@ -127,6 +262,29 @@ export class WorkSpacePlugin extends PluginClient {
       console.error(e);
     }
   }
+
+  async getcompilerconfig(){
+    //let config = await this.call("solidity","getCompilerConfig")
+    //console.log(config)
+  }
+
+
+  async getWorkSpace(){
+    let s = await this.call("fileExplorers","getCurrentWorkspace")
+    console.log(s)
+  }
+
+  async getWorkSpaces(){
+    let s = await this.call("fileExplorers","getWorkspaces")
+    console.log(s)
+  }
+
+  async createWorkSpace(name: string){
+    let s = await this.call("fileExplorers","createWorkspace", name)
+    //await this.call("fileExplorers","setWorkspace", name)
+  }
+
+
 
   async importcontent(dir: string) {
     console.log("import content");

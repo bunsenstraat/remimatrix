@@ -9,7 +9,7 @@ export const client = new WorkSpacePlugin();
 
 function App() {
   
-  const [dir, setDir] = useState<string>("T8.sol");
+  const [dir, setDir] = useState<string>("QmWhPht9m9GMSa3CoMqetvqNk6vZgmGBziTjBhQpxCUWJ8");
   const [result,setResult] = useState<string>()
 
 
@@ -32,21 +32,46 @@ function App() {
     <div className="App">
       <div>v5</div>
       <div>{result}</div>
-      <button onClick={async () => await client.getAccounts()}>get accounts</button>
-      <button onClick={async () => await client.setSettings()}>set settings to injected</button>
-      <button onClick={async () => await client.getSettings()}>get settings</button>
-      <button onClick={async () => await test()}>run sol test</button>
-      <button onClick={async () => await client.highlight(dir)}>highlight</button>
-      <button onClick={async () => await client.addAnnotation(dir)}>annotation</button>
-      <button onClick={async () => await client.clearAnnotations(dir)}>clear annotation</button>
-      <button onClick={async () => await client.open(dir)}>openfile</button>
-      <button onClick={async () => await client.read(dir)}>read</button>
-      <button onClick={async () => await client.write(dir)}>write</button>
-      <button onClick={async () => await client.switchfile(dir)}>switch to file</button>
-      <button onClick={async () => await client.getcurrentfile()}>getcurrentfile</button>
-      <button onClick={async () => await client.importcontent(dir)}>import content resolve</button>
-      <button onClick={async () => await client.fetch(dir)}>api test fetch</button>
-      <button onClick={async () => await client.axios(dir)}>api test axios</button>
+      <a href='vscode://RemixProject.ethereum-remix/pull?cid=QmPfLVGMj431EpNckuvZCjdhrBKp3KZ3Dv3N6YwZ1eBna2' target="_blank">testlink</a>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.zip()}>zip</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.ipfspush()}>ipfs push</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.ipfspull(dir)}>ipfs pull</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.ipfsConfig()}>ipfs config</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.getAccounts()}>get accounts</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.setSettings()}>set settings to injected</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.getSettings()}>get settings</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await test()}>run sol test</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.highlight(dir)}>highlight</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.addAnnotation(dir)}>annotation</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.clearAnnotations(dir)}>clear annotation</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.open(dir)}>openfile</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.read(dir)}>read</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.write(dir)}>write</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.switchfile(dir)}>switch to file</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.getcurrentfile()}>getcurrentfile</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.importcontent(dir)}>import content resolve</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.fetch(dir)}>api test fetch</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.axios(dir)}>api test axios</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.activate()}>activate</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.deactivate()}>deactivate</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.getresult()}>get compilation result</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.getcompilerconfig()}>get compiler config</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.getWorkSpace()}>get workspace</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.getWorkSpaces()}>get workspaces</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.createWorkSpace(dir)}>create workspace</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitinit(dir)}>git init</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitstatus(dir)}>git status</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitlog()}>git log</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitcommit()}>git commit</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitadd(dir)}>git add</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitremove(dir)}>git rm</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitlsfiles()}>git ls files</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitreadblob(dir)}>git read blob</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitresolveref()}>git resolve head</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitbranches()}>git branches</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitbranch(dir)}>git create branch</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitcheckout(dir)}>git checkout</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitcurrentbranch()}>git current branch</button>
       <input
         type="text"
         name="payloadBox"
