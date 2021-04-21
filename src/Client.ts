@@ -1,7 +1,12 @@
 import { PluginClient } from "@remixproject/plugin";
 import { createClient } from "@remixproject/plugin-webview";
 import { BehaviorSubject } from "rxjs";
-import axios from 'axios';
+import axios from "axios";
+import WalletConnectQRCodeModal from "@walletconnect/qrcode-modal";
+import WalletConnectProvider from "@walletconnect/web3-provider";
+
+import WalletConnect from "@walletconnect/client";
+import QRCodeModal from "@walletconnect/qrcode-modal";
 
 const simpleContract = `pragma solidity >=0.4.22 <0.7.0;
 /**
@@ -34,16 +39,18 @@ export class WorkSpacePlugin extends PluginClient {
 
   constructor() {
     super();
-    console.log("CONSTRUCTOR")
+    console.log("CONSTRUCTOR");
     createClient(this);
-    this.onload().then(async (x) => {
-      console.log("client loaded", JSON.stringify(this));
-      try{
-        await this.call("solidityUnitTesting","testFromSource","")
-      }catch(e){
-        console.log("not available")
-      }
-      /*
+    this.methods = ["qr", "dismiss"];
+    this.onload()
+      .then(async (x) => {
+        console.log("client loaded", JSON.stringify(this));
+        try {
+          await this.call("solidityUnitTesting", "testFromSource", "");
+        } catch (e) {
+          console.log("not available");
+        }
+        /*
       let acc = await this.call("udapp","getSettings")
       console.log(acc)
       let ac2 = await this.call("udapp","getAccounts")
@@ -62,14 +69,15 @@ export class WorkSpacePlugin extends PluginClient {
         console.log("comp fin",x)
       })
       */
-      await this.setCallBacks();
-    }).catch(async (e)=>{
-      console.log("ERROR CONNECTING",e)
-    });
+        await this.setCallBacks();
+      })
+      .catch(async (e) => {
+        console.log("ERROR CONNECTING", e);
+      });
   }
 
   async setCallBacks() {
-    console.log("set listeners")
+    console.log("set listeners");
     let me = this;
     this.on("fileManager", "currentFileChanged", function (x) {
       console.log("file changed", x);
@@ -81,16 +89,33 @@ export class WorkSpacePlugin extends PluginClient {
       me.log(x);
     });
 
-    this.on("solidity", "compilationFinished", function (target, source, version, data) {
-      console.log("compile finished", target, source, version,  data);
+    this.on("fileManager", "fileRemoved", function (x) {
+      console.log("REMOVE", x);
+      me.log(x);
     });
+
+    this.on(
+      "solidity",
+      "compilationFinished",
+      function (target, source, version, data) {
+        console.log("compile finished", target, source, version, data);
+      }
+    );
 
     this.on("fileManager", "fileAdded", function (x) {
       console.log("added file", x);
       me.log(x);
     });
 
-    this.on("fileExplorers", "createWorkspace", function (x) {
+    this.on("walletconnect" as any, "displayUri", async function(x:string){
+      await me.qr(x);
+    })
+
+    this.on("walletconnect" as any, "accountsChanged", async function(x:string){
+      await me.dismiss()
+    })
+
+    /*     this.on("fileExplorers", "createWorkspace", function (x) {
       console.log("ws create", x);
       me.log(x);
     });
@@ -108,7 +133,102 @@ export class WorkSpacePlugin extends PluginClient {
     this.on("fileExplorers", "renameWorkspace", function (x) {
       console.log("wS rn", x);
       me.log(x);
+    }); */
+  }
+
+  async qr(uri: string) {
+    console.log("QR ", uri);
+    WalletConnectQRCodeModal.open(uri, function () {
+      console.log("qr modal done");
     });
+  }
+
+  async dismiss() {
+    WalletConnectQRCodeModal.close();
+  }
+
+  async dapp(uri:string){
+    console.log("DAPP ",uri)
+    await this.call("walletconnect" as any, "connect")
+
+    
+  }
+
+  async connect() {
+    // Create a connector
+    const connector = new WalletConnect({
+      bridge: "https://static.225.91.181.135.clients.your-server.de/", // Required
+      qrcodeModal: QRCodeModal,
+    });
+
+    // Check if connection is already established
+    if (!connector.connected) {
+      // create new session
+      connector.createSession().then(() => {
+        console.log(connector);
+      });
+    }
+
+    // Subscribe to connection events
+    connector.on("connect", (error, payload) => {
+      if (error) {
+        throw error;
+      }
+      console.log("CONNECT", payload);
+      // Get provided accounts and chainId
+      const { accounts, chainId } = payload.params[0];
+    });
+
+    connector.on("session_update", (error, payload) => {
+      if (error) {
+        throw error;
+      }
+      console.log("SESSUPDATE", payload);
+      // Get updated accounts and chainId
+      const { accounts, chainId } = payload.params[0];
+    });
+
+    connector.on("disconnect", (error, payload) => {
+      if (error) {
+        throw error;
+      }
+      console.log("DISCONNEDT", payload);
+      // Delete connector
+    });
+  }
+
+  async wallet() {
+    console.log("connect");
+    const provider = new WalletConnectProvider({
+      infuraId: "83d4d660ce3546299cbe048ed95b6fad",
+      bridge: "https://static.225.91.181.135.clients.your-server.de/",
+      qrcode: false,
+    });
+
+    provider.connector.on("display_uri", (err, payload) => {
+      const uri = payload.params[0];
+      console.log(uri);
+      this.call("walletconnect" as any, "qr", uri);
+    });
+
+    // Subscribe to accounts change
+    provider.on("accountsChanged", (accounts: string[]) => {
+      console.log(accounts);
+      this.call("walletconnect" as any, "dismiss");
+      provider.disconnect();
+    });
+
+    // Subscribe to chainId change
+    provider.on("chainChanged", (chainId: number) => {
+      console.log(chainId);
+    });
+
+    // Subscribe to session disconnection
+    provider.on("disconnect", (code: number, reason: string) => {
+      console.log(code, reason);
+    });
+
+    await provider.enable();
   }
 
   async log(message: string) {
@@ -117,98 +237,95 @@ export class WorkSpacePlugin extends PluginClient {
 
   async test(p: string) {}
 
-  async activate(){
-    this.call("manager","activatePlugin","remixd")
+  async activate() {
+    this.call("manager", "activatePlugin", "remixd");
   }
 
-  async deactivate(){
-    this.call("manager","deactivatePlugin","111")
+  async deactivate() {
+    this.call("manager", "deactivatePlugin", "111");
   }
 
-  async getresult(){
-    let r = await this.call("solidity","getCompilationResult")
-    console.log("RESULT", r)
+  async getresult() {
+    let r = await this.call("solidity", "getCompilationResult");
+    console.log("RESULT", r);
   }
 
-  async gitbranches(){
-    let r = await this.call("dGitProvider","branches")
-    console.log("branches", r)
+  async gitbranches() {
+    //let r = await this.call("dGitProvider","branches")
+    //console.log("branches", r)
   }
-  async gitbranch(dir:string){
-    let r = await this.call("dGitProvider","branch",dir)
-  }
-
-  async gitcurrentbranch(){
-    let r = await this.call("dGitProvider","currentbranch")
-    console.log(r)
+  async gitbranch(dir: string) {
+    //let r = await this.call("dGitProvider","branch",dir)
   }
 
-  async gitcheckout(dir:string){
-    let r = await this.call("dGitProvider","checkout",dir)
+  async gitcurrentbranch() {
+    //let r = await this.call("dGitProvider","currentbranch")
+    // console.log(r)
   }
 
-  async gitinit(dir:string){
-    let s = await this.call("fileExplorers","getCurrentWorkspace")
-    let r = await this.call("dGitProvider","init")
+  async gitcheckout(dir: string) {
+    //let r = await this.call("dGitProvider","checkout",dir)
   }
 
-  async gitstatus(dir:string){
-    let r = await this.call("dGitProvider","status",'HEAD')
-    console.log("git status ", r)
+  async gitinit(dir: string) {
+    // let s = await this.call("fileExplorers","getCurrentWorkspace")
+    // let r = await this.call("dGitProvider","init")
   }
 
-  async gitadd(dir:string){
-    let r = await this.call("dGitProvider","add",dir)
-    console.log("git add ", r)
+  async gitstatus(dir: string) {
+    //  let r = await this.call("dGitProvider","status",'HEAD')
+    // console.log("git status ", r)
   }
 
-  async gitremove(dir:string){
-    let r = await this.call("dGitProvider","rm",dir)
-    console.log("git rm ", r)
+  async gitadd(dir: string) {
+    // let r = await this.call("dGitProvider","add",dir)
+    // console.log("git add ", r)
   }
 
-  async gitlog(){
-    let r = await this.call("dGitProvider","log",'HEAD')
-    console.log("git log ", r)
+  async gitremove(dir: string) {
+    //  let r = await this.call("dGitProvider","rm",dir)
+    //  console.log("git rm ", r)
   }
 
-  async gitcommit(){
-    let r = await this.call("dGitProvider","commit",{})
-    console.log("git log ", r)
+  async gitlog() {
+    //  let r = await this.call("dGitProvider","log",'HEAD')
+    // console.log("git log ", r)
   }
 
-  async gitlsfiles(){
-    let r = await this.call("dGitProvider","lsfiles",'HEAD')
-    console.log("git log ", r)
+  async gitcommit() {
+    //  let r = await this.call("dGitProvider","commit",{})
+    //  console.log("git log ", r)
   }
 
-  async gitresolveref(){
-    let r = await this.call("dGitProvider","resolveref",'HEAD')
-    console.log("git resolve ", r)
+  async gitlsfiles() {
+    //  let r = await this.call("dGitProvider","lsfiles",'HEAD')
+    // console.log("git log ", r)
   }
 
-  async gitreadblob(file:string){
-    let c = await this.call("dGitProvider","log",'HEAD')
-    console.log(c[c.length-1].oid)
-    let r = await this.call("dGitProvider","readblob",{oid:c[c.length-1].oid, filepath:"README.txt"})
-    console.log("git blob ", r)
+  async gitresolveref() {
+    //  let r = await this.call("dGitProvider","resolveref",'HEAD')
+    //  console.log("git resolve ", r)
   }
 
-  async ipfspush()
-  {
-    await this.call("dGitProvider", "push");
+  async gitreadblob(file: string) {
+    //  let c = await this.call("dGitProvider","log",'HEAD')
+    //  console.log(c[c.length-1].oid)
+    //  let r = await this.call("dGitProvider","readblob",{oid:c[c.length-1].oid, filepath:"README.txt"})
+    //  console.log("git blob ", r)
   }
 
-  async ipfspull(cid:string){
-    try{
-    await this.call("dGitProvider", "pull", cid);
-    }catch(e){
-
-    }
+  async ipfspush() {
+    //  await this.call("dGitProvider", "push");
   }
 
-  async ipfsConfig(){
-    try{
+  async ipfspull(cid: string) {
+    try {
+      await this.call("dGitProvider", "pull", cid);
+    } catch (e) {}
+  }
+
+  async ipfsConfig() {
+    /* try{
       let r = await this.call("dGitProvider", "setIpfsConfig", {
         host: 'localhost',
         port: 5002,
@@ -218,7 +335,7 @@ export class WorkSpacePlugin extends PluginClient {
       console.log(r)
       }catch(e){
         console.log(e)
-      } 
+      }  */
   }
 
   async read(dir: string) {
@@ -239,52 +356,49 @@ export class WorkSpacePlugin extends PluginClient {
     var files = await this.call("fileManager", "switchFile", dir);
   }
 
-  async zip(){
-    let r = await this.call("dGitProvider","zip")
+  async zip() {
+    // let r = await this.call("dGitProvider","zip")
   }
 
   async fetch(dir: string) {
     try {
       var files = await fetch(dir);
-      console.log(files)
+      console.log(files);
       console.log(files.toString());
     } catch (e) {
       console.error(e);
     }
   }
 
-  async axios(dir:string){
+  async axios(dir: string) {
     try {
       var files = await axios.get(dir);
-      console.log(files)
+      console.log(files);
       console.log(files.toString());
     } catch (e) {
       console.error(e);
     }
   }
 
-  async getcompilerconfig(){
+  async getcompilerconfig() {
     //let config = await this.call("solidity","getCompilerConfig")
     //console.log(config)
   }
 
-
-  async getWorkSpace(){
-    let s = await this.call("fileExplorers","getCurrentWorkspace")
-    console.log(s)
+  async getWorkSpace() {
+    //  let s = await this.call("fileExplorers","getCurrentWorkspace")
+    //  console.log(s)
   }
 
-  async getWorkSpaces(){
-    let s = await this.call("fileExplorers","getWorkspaces")
-    console.log(s)
+  async getWorkSpaces() {
+    //  let s = await this.call("fileExplorers","getWorkspaces")
+    //  console.log(s)
   }
 
-  async createWorkSpace(name: string){
-    let s = await this.call("fileExplorers","createWorkspace", name)
+  async createWorkSpace(name: string) {
+    // let s = await this.call("fileExplorers","createWorkspace", name)
     //await this.call("fileExplorers","setWorkspace", name)
   }
-
-
 
   async importcontent(dir: string) {
     console.log("import content");
@@ -358,7 +472,6 @@ export class WorkSpacePlugin extends PluginClient {
     console.log(settings);
     return settings;
   }
-
 
   async soltest() {
     const f = `pragma solidity >=0.4.0 <0.7.0;

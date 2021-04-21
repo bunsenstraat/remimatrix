@@ -72,6 +72,10 @@ function App() {
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitbranch(dir)}>git create branch</button>
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitcheckout(dir)}>git checkout</button>
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.gitcurrentbranch()}>git current branch</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.qr(dir)}>qr</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.wallet()}>connect to wallet</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.connect()}>connect to wallet2</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.dapp(dir)}>connect to dapp</button>
       <input
         type="text"
         name="payloadBox"
