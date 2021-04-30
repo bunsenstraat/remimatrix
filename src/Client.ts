@@ -235,6 +235,10 @@ export class WorkSpacePlugin extends PluginClient {
     //console.log(message)
   }
 
+  async changetoinjected(){
+    this.call('udapp','setEnvironmentMode','injected')
+  }
+
   async test(p: string) {}
 
   async activate() {
@@ -320,7 +324,7 @@ export class WorkSpacePlugin extends PluginClient {
 
   async ipfspull(cid: string) {
     try {
-      await this.call("dGitProvider", "pull", cid);
+     // await this.call("dGitProvider", "pull", cid);
     } catch (e) {}
   }
 

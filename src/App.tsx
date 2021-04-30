@@ -76,6 +76,7 @@ function App() {
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.wallet()}>connect to wallet</button>
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.connect()}>connect to wallet2</button>
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.dapp(dir)}>connect to dapp</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.changetoinjected()}>change to injected</button>
       <input
         type="text"
         name="payloadBox"
