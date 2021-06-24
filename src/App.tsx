@@ -5,14 +5,16 @@ import "./App.css";
 import { WorkSpacePlugin } from "./Client";
 import { Logger } from "./logger";
 
+
+
 export const client = new WorkSpacePlugin();
+
+
 
 function App() {
   
-  const [dir, setDir] = useState<string>("QmWhPht9m9GMSa3CoMqetvqNk6vZgmGBziTjBhQpxCUWJ8");
+  const [dir, setDir] = useState<string>("hardhat");
   const [result,setResult] = useState<string>()
-
-
 
   const handleChange = ({ target }: any) => {
     setDir(target.value);
@@ -32,7 +34,7 @@ function App() {
     <div className="App">
       <div>v5</div>
       <div>{result}</div>
-      <a href='vscode://RemixProject.ethereum-remix/pull?cid=QmPfLVGMj431EpNckuvZCjdhrBKp3KZ3Dv3N6YwZ1eBna2' target="_blank">testlink</a>
+      <a href='http://nu.nl' target="_blank">testlink</a>
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.zip()}>zip</button>
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.ipfspush()}>ipfs push</button>
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.ipfspull(dir)}>ipfs pull</button>
@@ -77,6 +79,14 @@ function App() {
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.connect()}>connect to wallet2</button>
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.dapp(dir)}>connect to dapp</button>
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.changetoinjected()}>change to injected</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.writetoCeramic()}>ceramic write</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.pinatapush()}>pinata write</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.pinlist()}>pinata list</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.setCallBacks()}>callbacks</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.log("")}>log</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.activatePlugin(dir)}>activate</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.deActivatePlugin(dir)}>deactivate</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.debug(dir)}>debug</button>
       <input
         type="text"
         name="payloadBox"
