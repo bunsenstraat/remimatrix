@@ -9,7 +9,7 @@ import WalletConnectProvider from "@walletconnect/web3-provider";
 import WalletConnect from "@walletconnect/client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
 import CeramicClient from '@ceramicnetwork/http-client'
-import { ThreeIdConnect,  EthereumAuthProvider } from '@3id/connect'
+import { ThreeIdConnect, EthereumAuthProvider } from '@3id/connect'
 
 const simpleContract = `pragma solidity >=0.4.22 <0.7.0;
 /**
@@ -47,12 +47,32 @@ export class WorkSpacePlugin extends PluginClient {
 
 
 
-    this.methods = ["qr", "dismiss","customAction"];
+    this.methods = ["qr", "dismiss", "customAction"];
     this.onload()
       .then(async (x) => {
         //console.log("client loaded", JSON.stringify(this));
+        return
         try {
-          //await this.call("solidityUnitTesting", "testFromSource", "");
+          console.log('delay')
+          try{
+          await this.call("dGitProvider" as any, "delay", "1");
+          }catch(e){
+            console.log(e)
+          }
+          console.log('1 ready')
+          try{
+          await this.call("dGitProvider" as any, "delay", "2");
+        }catch(e){
+          console.log(e)
+        }
+          console.log('2 ready')
+          try{
+          await this.call("dGitProvider" as any, "delay", "3");
+        }catch(e){
+          console.log(e)
+        }
+          console.log('3 ready')
+          console.log('delay done')
         } catch (e) {
           //console.log("not available");
         }
@@ -75,20 +95,40 @@ export class WorkSpacePlugin extends PluginClient {
         console.log("comp fin",x)
       })
       */
-      await this.setCallBacks();
+        //await this.setCallBacks();
 
 
-      this.on(
-        "solidity",
-        "compilationFinished",
-        function (target, source, version, data) {
-          console.log("compile finished", target, source, version, data);
-        }
-      );
+
       })
       .catch(async (e) => {
         console.log("ERROR CONNECTING", e);
       });
+  }
+
+  async cancelCalls(){
+    await this.cancel('dGitProvider' as any,'delay')
+    console.log('canceled')
+  }
+
+  async makeQueue(){
+    try{
+       await this.call("dGitProvider" as any, "delay", "q1");
+      }catch(e){
+        console.log(e)
+      }
+      console.log('1 ready')
+      try{
+       await this.call("dGitProvider" as any, "delay", "q2");
+    }catch(e){
+      console.log(e)
+    }
+      console.log('2 ready')
+      try{
+       console.log(await this.call("dGitProvider" as any, "delay", "q3"))
+    }catch(e){
+      console.log(e)
+    }
+    console.log('3 ready')
   }
 
   async setCallBacks() {
@@ -97,7 +137,7 @@ export class WorkSpacePlugin extends PluginClient {
     let cmd: customAction = {
       id: this.name,
       name: "customAction",
-      type: ["file","folder"],
+      type: ["file", "folder"],
       extension: [],
       path: [],
       pattern: [],
@@ -107,14 +147,14 @@ export class WorkSpacePlugin extends PluginClient {
     let cmd2: customAction = {
       id: this.name,
       name: "myAction2",
-      type: ["file","folder"],
+      type: ["file", "folder"],
       extension: [],
       path: [],
       pattern: []
     }
 
-    this.call("filePanel","registerContextMenuItem",cmd)
-    this.call("filePanel","registerContextMenuItem",cmd2)
+    this.call("filePanel", "registerContextMenuItem", cmd)
+    this.call("filePanel", "registerContextMenuItem", cmd2)
 
     console.log("set listeners");
     let me = this;
@@ -123,7 +163,7 @@ export class WorkSpacePlugin extends PluginClient {
       me.log(x);
     });
 
-    this.on("filePanel","customAction", function(x){
+    this.on("filePanel", "customAction", function (x:any) {
       console.log("custom ACTION", x)
     })
 
@@ -150,11 +190,11 @@ export class WorkSpacePlugin extends PluginClient {
       me.log(x);
     });
 
-    this.on("walletconnect" as any, "displayUri", async function(x:string){
+    this.on("walletconnect" as any, "displayUri", async function (x: string) {
       await me.qr(x);
     })
 
-    this.on("walletconnect" as any, "accountsChanged", async function(x:string){
+    this.on("walletconnect" as any, "accountsChanged", async function (x: string) {
       await me.dismiss()
     })
 
@@ -179,7 +219,7 @@ export class WorkSpacePlugin extends PluginClient {
     }); */
   }
 
-  async customAction(o:customAction){
+  async customAction(o: customAction) {
     console.log("custom action called", o)
   }
 
@@ -194,11 +234,11 @@ export class WorkSpacePlugin extends PluginClient {
     WalletConnectQRCodeModal.close();
   }
 
-  async dapp(uri:string){
-    console.log("DAPP ",uri)
+  async dapp(uri: string) {
+    console.log("DAPP ", uri)
     await this.call("walletconnect" as any, "connect")
 
-    
+
   }
 
   async connect() {
@@ -280,21 +320,21 @@ export class WorkSpacePlugin extends PluginClient {
 
   async log(message: string) {
     //console.log(message)
-    this.call('terminal','log',{type:'info',value:'Name\r\nAniket'})
-    this.call('terminal','log',{type:'html',value:'<div>test</div><ul><li>test</li></ul>'})
+    this.call('terminal' as any, 'log', { type: 'info', value: 'Name\r\nAniket' })
+    this.call('terminal' as any, 'log', { type: 'html', value: '<div>test</div><ul><li>test</li></ul>' })
   }
 
-  async changetoinjected(){
-    this.call('udapp','setEnvironmentMode','injected')
+  async changetoinjected() {
+    this.call('udapp', 'setEnvironmentMode', 'injected')
   }
 
-  async test(p: string) {}
+  async test(p: string) { }
 
   async activate() {
     this.call("manager", "activatePlugin", "remixd");
   }
 
-  async writetoCeramic(){
+  async writetoCeramic() {
     const API_URL = "http://135.181.91.225:7007/"
     const ceramic = new CeramicClient(API_URL)
     const eth = window as any
@@ -305,7 +345,7 @@ export class WorkSpacePlugin extends PluginClient {
     const provider = await threeIdConnect.getDidProvider()
     await ceramic.setDIDProvider(provider)
     console.log(provider)
-    
+
   }
 
   async deactivate() {
@@ -386,26 +426,26 @@ export class WorkSpacePlugin extends PluginClient {
   }
 
   async pinatapush() {
-    try{
-      let r = await this.call("dGitProvider" as any, "pin",'124def6d9115e0c2c521','130c1a8b18fd0c77f9ee8c1614146d277c3def661506dbf1c78618325cc53c8b');
+    try {
+      let r = await this.call("dGitProvider" as any, "pin", '124def6d9115e0c2c521', '130c1a8b18fd0c77f9ee8c1614146d277c3def661506dbf1c78618325cc53c8b');
       console.log(r)
-    }catch(err){
+    } catch (err) {
       console.log(err)
     }
   }
 
   async pinlist() {
-    try{
-      let r = await this.call("dGitProvider" as any, "pinList",'124def6d9115e0c2c521','130c1a8b18fd0c77f9ee8c1614146d277c3def661506dbf1c78618325cc53c8b');
+    try {
+      let r = await this.call("dGitProvider" as any, "pinList", '124def6d9115e0c2c521', '130c1a8b18fd0c77f9ee8c1614146d277c3def661506dbf1c78618325cc53c8b');
       console.log(r)
-    }catch(err){
+    } catch (err) {
       console.log(err)
     }
   }
   async ipfspull(cid: string) {
     try {
-     await this.call("dGitProvider", "pull", cid);
-    } catch (e) {}
+      await this.call("dGitProvider", "pull", cid);
+    } catch (e) { }
   }
 
   async ipfsConfig() {
@@ -541,14 +581,14 @@ export class WorkSpacePlugin extends PluginClient {
     this.call("editor", "clearAnnotations");
   }
 
-  async activatePlugin(f:string){
-    await this.call('manager','activatePlugin',f)
-    console.log(await this.call('manager','isActive',f))
+  async activatePlugin(f: string) {
+    await this.call('manager', 'activatePlugin', f)
+    console.log(await this.call('manager', 'isActive', f))
   }
 
-  async deActivatePlugin(f:string){
-    await this.call('manager','deactivatePlugin',f)
-    console.log(await this.call('manager','isActive',f))
+  async deActivatePlugin(f: string) {
+    await this.call('manager', 'deactivatePlugin', f)
+    console.log(await this.call('manager', 'isActive', f))
   }
 
   async getSettings() {
@@ -560,8 +600,8 @@ export class WorkSpacePlugin extends PluginClient {
     let settings = await this.call("udapp", "setEnvironmentMode", "injected");
     await this.getSettings();
   }
-  
-  async debug(hash:string){
+
+  async debug(hash: string) {
     let settings = await this.call("remixdprovider" as any, "debug", hash);
   }
 

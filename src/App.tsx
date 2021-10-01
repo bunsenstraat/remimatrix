@@ -35,6 +35,8 @@ function App() {
       <div>v5</div>
       <div>{result}</div>
       <a href='http://nu.nl' target="_blank">testlink</a>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.cancelCalls()}>cancel</button>
+      <button className='btn btn-primary btn-sm'  onClick={async () => await client.makeQueue()}>queue</button>
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.zip()}>zip</button>
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.ipfspush()}>ipfs push</button>
       <button className='btn btn-primary btn-sm'  onClick={async () => await client.ipfspull(dir)}>ipfs pull</button>
