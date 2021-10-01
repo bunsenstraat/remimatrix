@@ -10,6 +10,8 @@ import WalletConnect from "@walletconnect/client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
 import CeramicClient from '@ceramicnetwork/http-client'
 import { ThreeIdConnect, EthereumAuthProvider } from '@3id/connect'
+import { matrixClient } from "./App";
+import { type } from "os";
 
 const simpleContract = `pragma solidity >=0.4.22 <0.7.0;
 /**
@@ -36,9 +38,17 @@ contract StorageTestUpdateConfiguration {
           
           `;
 
+type File = {
+  name: string,
+  body: string
+}
+
 export class WorkSpacePlugin extends PluginClient {
   callBackEnabled: boolean = true;
   feedback = new BehaviorSubject<string>("");
+  autoSend: boolean = false
+  autoReceive: boolean = false
+  files: File[] = []
 
   constructor() {
     super();
@@ -47,55 +57,11 @@ export class WorkSpacePlugin extends PluginClient {
 
 
 
-    this.methods = ["qr", "dismiss", "customAction"];
+    this.methods = ["qr", "dismiss", "sendfiletomatrix","senddirtomatrix"];
     this.onload()
       .then(async (x) => {
         //console.log("client loaded", JSON.stringify(this));
-        return
-        try {
-          console.log('delay')
-          try{
-          await this.call("dGitProvider" as any, "delay", "1");
-          }catch(e){
-            console.log(e)
-          }
-          console.log('1 ready')
-          try{
-          await this.call("dGitProvider" as any, "delay", "2");
-        }catch(e){
-          console.log(e)
-        }
-          console.log('2 ready')
-          try{
-          await this.call("dGitProvider" as any, "delay", "3");
-        }catch(e){
-          console.log(e)
-        }
-          console.log('3 ready')
-          console.log('delay done')
-        } catch (e) {
-          //console.log("not available");
-        }
-        /*
-      let acc = await this.call("udapp","getSettings")
-      console.log(acc)
-      let ac2 = await this.call("udapp","getAccounts")
-      console.log(ac2)
-      const privateKey = "71975fbf7fe448e004ac7ae54cad0a383c3906055a75468714156a07385e96ce"
-      const balance = "0x56BC75E2D63100000"
-      let na = await this.call("udapp","createVMAccount",{ privateKey, balance })
-      console.log(na)
-
-      this.on('udapp', 'newTransaction', (tx: any) => {
-        // Do something
-        console.log("new transaction", tx)
-      })
-  
-      this.on("solidity","compilationFinished",function(x){
-        console.log("comp fin",x)
-      })
-      */
-        //await this.setCallBacks();
+        await this.setCallBacks()
 
 
 
@@ -105,67 +71,93 @@ export class WorkSpacePlugin extends PluginClient {
       });
   }
 
-  async cancelCalls(){
-    await this.cancel('dGitProvider' as any,'delay')
-    console.log('canceled')
+  async sendFile(path: string) {
+    //console.log("file send", path);
+    try {
+      let body = await this.call("fileManager", "getFile", path)
+      let found = false
+      for (let file of this.files) {
+        if (file.name === path) {
+          found = true
+          if (file.body !== body) {
+            console.log('sending & changing file')
+            file.body = body
+            matrixClient.sendFile(path, body)
+          }
+        }
+      }
+      if (!found) {
+        console.log('sending & storing file')
+        this.files.push({ name: path, body: body })
+        matrixClient.sendFile(path, body)
+      }
+    } catch (e) {
+
+    }
+    //console.log(file)
+
   }
 
-  async makeQueue(){
-    try{
-       await this.call("dGitProvider" as any, "delay", "q1");
-      }catch(e){
-        console.log(e)
-      }
-      console.log('1 ready')
-      try{
-       await this.call("dGitProvider" as any, "delay", "q2");
-    }catch(e){
-      console.log(e)
-    }
-      console.log('2 ready')
-      try{
-       console.log(await this.call("dGitProvider" as any, "delay", "q3"))
-    }catch(e){
-      console.log(e)
-    }
-    console.log('3 ready')
-  }
+
 
   async setCallBacks() {
 
 
     let cmd: customAction = {
       id: this.name,
-      name: "customAction",
-      type: ["file", "folder"],
+      name: "sendfiletomatrix",
+      type: ["file"],
       extension: [],
+      label: "Send file to Matrix",
       path: [],
       pattern: [],
       //sticky: true
     }
 
+    try {
+      /* this.call('filePanel', 'registerContextMenuItem', {
+        id: 'dgit',
+        name: 'track',
+        label: 'Track in dGit',
+        type: ['file', 'folder'],
+        extension: [],
+        path: [],
+        pattern: [],
+        sticky: true
+      }) */
+    } catch (e) {
+
+    }
+
     let cmd2: customAction = {
       id: this.name,
-      name: "myAction2",
-      type: ["file", "folder"],
+      name: "senddirtomatrix",
+      label: "Send directory to Matrix",
+      type: ["folder"],
       extension: [],
       path: [],
       pattern: []
     }
+    try {
+      await this.call("filePanel", "registerContextMenuItem", cmd)
+      await this.call("filePanel", "registerContextMenuItem", cmd2)
+    }catch(e){
 
-    this.call("filePanel", "registerContextMenuItem", cmd)
-    this.call("filePanel", "registerContextMenuItem", cmd2)
+    }
 
     console.log("set listeners");
     let me = this;
-    this.on("fileManager", "currentFileChanged", function (x) {
-      console.log("file changed", x);
-      me.log(x);
+    this.on("fileManager", "currentFileChanged", async function (x) {
+      if (me.autoSend) await me.sendFile(x)
     });
 
-    this.on("filePanel", "customAction", function (x:any) {
-      console.log("custom ACTION", x)
+    this.on("fileManager", "fileSaved", async function (x: any) {
+      if (me.autoSend) await me.sendFile(x)
     })
+
+    this.on("fileManager", "fileAdded", async function (x) {
+      //if (me.autoSync) await me.sendFile(x)
+    });
 
     this.on("fileManager", "fileRemoved", function (x) {
       console.log("REMOVE", x);
@@ -185,10 +177,7 @@ export class WorkSpacePlugin extends PluginClient {
       }
     );
 
-    this.on("fileManager", "fileAdded", function (x) {
-      console.log("added file", x);
-      me.log(x);
-    });
+
 
     this.on("walletconnect" as any, "displayUri", async function (x: string) {
       await me.qr(x);
@@ -197,6 +186,10 @@ export class WorkSpacePlugin extends PluginClient {
     this.on("walletconnect" as any, "accountsChanged", async function (x: string) {
       await me.dismiss()
     })
+    this.on("filePanel", "setWorkspace", function (x) {
+      me.files = []
+    });
+
 
     /*     this.on("fileExplorers", "createWorkspace", function (x) {
       console.log("ws create", x);
@@ -221,6 +214,14 @@ export class WorkSpacePlugin extends PluginClient {
 
   async customAction(o: customAction) {
     console.log("custom action called", o)
+  }
+
+  async sendfiletomatrix(o: customAction) {
+    await this.sendFile(o.path[0])
+  }
+
+  async senddirtomatrix(o: customAction) {
+    //await this.sendFile(o.path[0])
   }
 
   async qr(uri: string) {
@@ -467,8 +468,9 @@ export class WorkSpacePlugin extends PluginClient {
     console.log(files.toString());
     console.log(files);
   }
-  async write(dir: string) {
-    this.call("fileManager", "setFile", dir, simpleContract);
+  async write(path: string, content: string) {
+    await this.call("fileManager", "setFile", path, content);
+    await this.call("fileManager","open", path)
   }
 
   async getcurrentfile() {
@@ -520,8 +522,8 @@ export class WorkSpacePlugin extends PluginClient {
   }
 
   async createWorkSpace(name: string) {
-    // let s = await this.call("fileExplorers","createWorkspace", name)
-    //await this.call("fileExplorers","setWorkspace", name)
+    await this.call('filePanel' as any, 'createWorkspace', `workspace_${Date.now()}`, false)
+    //await this.call("filePanel","setWorkspace", name)
   }
 
   async importcontent(dir: string) {
