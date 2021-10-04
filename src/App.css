@@ -30,7 +30,12 @@
 
 .btn {
   margin: 10px;
-  float: left;
+}
+
+.chatwindow {
+  max-height: 65vh;
+  overflow-y:scroll;
+
 }
 
 @keyframes App-logo-spin {
@@ -40,4 +45,9 @@
   to {
     transform: rotate(360deg);
   }
+}
+.navbutton, .nav {
+  font-size: 0.8rem;
+  text-decoration: none;
+  margin: 0px;
 }
