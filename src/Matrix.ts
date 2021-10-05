@@ -16,7 +16,7 @@ export type Message = {
 export class MatrixRemix {
     matrixclient: sdk.MatrixClient
     accessToken: any = ""
-    roomId = "!KWgjcVCkQMKsrQZzhq:matrix.org";
+    roomId = "";
     username: string = ""
     connected = new BehaviorSubject<boolean>(false);
     message = new BehaviorSubject<Message>({})
@@ -49,6 +49,10 @@ export class MatrixRemix {
                 name,
                 room_alias_name,
                 topic
+            })
+            await this.matrixclient.setGuestAccess(room_id.room_id, {
+                allowJoin: true,
+                allowRead: true
             })
             this.syncrooms()
         } catch (e) {
@@ -190,6 +194,23 @@ export class MatrixRemix {
         this.roomId = ''
         this.myRooms.next([])
         this.message.next({ content: 'disconnected', type: 'info' })
+    }
+
+    async guestlogin(){
+        this.matrixclient = sdk.createClient("https://matrix.org");
+        const { user_id, device_id, access_token } = await this.matrixclient.registerGuest({});
+        this.matrixclient = sdk.createClient({
+           baseUrl: "https://matrix.org",
+           accessToken: access_token,
+           userId: user_id,
+           deviceId: device_id,
+        })
+        this.matrixclient.setGuest(true);
+        this.accessToken = access_token
+        this.username = user_id
+        console.log(access_token, user_id)
+        //this.username = this.matrixclient.getUser(user_id).displayName
+        await this.startClient()
     }
 
     async connect(username: string, password: string) {

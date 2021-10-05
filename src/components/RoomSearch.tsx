@@ -36,7 +36,8 @@ export const RoomSearch: React.FC<any> = (props) => {
 
     return (<>
         <form onSubmit={searchroom}>
-            <input placeholder='Enter to search a room' className='form-control w-100' type="text" onChange={handleChange} />
+            <Form.Label>Search rooms</Form.Label>
+            <input placeholder='Hit ENTER to search a room' className='form-control w-100' type="text" onChange={handleChange} />
             <div onClick={async()=> { setRooms([]); }} className='badge bagde-secondary'>clear search</div>
         </form>
         <ul className='pl-0'>

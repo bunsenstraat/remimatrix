@@ -34,8 +34,8 @@ function App() {
   );
   const [room, setRoom] = useState<string>("!FaLewgrNoxRxrSPmWM:matrix.org");
   const [result, setResult] = useState<string>()
-  const [username, setUsername] = useLocalStorage("usernam", "@filipmertens:matrix.org")
-  const [password, setPassword] = useLocalStorage("password", "RzLIYi81!")
+  const [username, setUsername] = useLocalStorage("usernam", "")
+  const [password, setPassword] = useLocalStorage("password", "")
   const [autoSend, setAutoSend] = useState(false)
   const [autoReceive, setAutoReceive] = useState(false)
   const [incomingFiles, setIncomingFiles] = useState<IncomingFile[]>([{}])
@@ -147,7 +147,7 @@ function App() {
 
   const ssoLink = () => {
     let sso = new SSOLoginHelper('https://matrix-client.matrix.org')
-    return sso.createSSORedirectURL('http://localhost:3000')
+    return sso.createSSORedirectURL(window.location.href)
   }
 
   function CustomToggle(ob: any) {
@@ -179,7 +179,7 @@ function App() {
       </>
     );
   }
-
+  const handleFocus = (event: any) => event.target.select();
   return (
     (isCallBack ? <>
       <div className='container'>
@@ -187,7 +187,7 @@ function App() {
         <div>
           Paste this into the Token field in the app in Remix or reload the plugin. You can close this window.
         </div>
-        <input className='w-100 form-control' type='text' readOnly value={loginToken} />
+        <input autoFocus onFocus={handleFocus} className='w-100 form-control' type='text' readOnly value={loginToken} />
         <hr></hr>
         <CopyToClipboard
           text={loginToken}
@@ -203,16 +203,17 @@ function App() {
         {matrixMessage?.content ? <Alert variant={matrixMessage.type}>{matrixMessage.content}</Alert> : <></>}
         {connected ? <><Button className='ml-0 btn btn-secondary w-100' onClick={async () => matrixClient.disconnect()}>Disconnect</Button>{matrixClient.username} </> : <>
           <h6>Login with github etc.</h6>
+          
+          <a className='' href='https://app.element.io/' target='_blank'>Register</a>
           <a className='btn btn-primary w-100 ml-0' href={ssoLink()} target='_blank'>Get a login token</a>
-          <input placeholder='paste token here' onChange={handleChangeToken} type='text' className="form-control w-100" value={loginToken} />
+          <input onFocus={handleFocus} placeholder='paste token here' onChange={handleChangeToken} type='text' className="form-control w-100" value={loginToken} />
           <>
             {connected ? <Button className='ml-0 btn btn-secondary w-100' onClick={async () => matrixClient.disconnect()}>Disconnect</Button> : <Button className='ml-0 btn btn-primary w-100' onClick={async () => await matrixClient.connectToken(username, loginToken)}>Connect with token</Button>}
           </>
           <hr></hr>
-
           <h6>Login with password</h6>
           <label>Matrix userId</label>
-          <input placeholder='userID eg. @mike:matrix:org' className="form-control w-100" type='text' value={username} onChange={userChange} />
+          <input placeholder='userID eg. mike or @mike:matrix.org' className="form-control w-100" type='text' value={username} onChange={userChange} />
           <label>Matrix password</label>
           <input placeholder='password' className="form-control w-100" type='password' value={password} onChange={passwordChange} />
           <>
