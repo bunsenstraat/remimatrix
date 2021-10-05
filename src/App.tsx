@@ -32,7 +32,7 @@ function App() {
   const matrixMessage = useBehaviorSubject(
     matrixClient.message
   );
-  const [room, setRoom] = useState<string>("!FaLewgrNoxRxrSPmWM:matrix.org");
+
   const [result, setResult] = useState<string>()
   const [username, setUsername] = useLocalStorage("usernam", "")
   const [password, setPassword] = useLocalStorage("password", "")
