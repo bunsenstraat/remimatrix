@@ -87,11 +87,6 @@ function App() {
     });
     setIncomingFiles(c);
   }
-
-  const handleChange = ({ target }: any) => {
-    setRoom(target.value);
-  };
-
   const handleChangeToken = ({ target }: any) => {
     setLoginToken(target.value);
   };
