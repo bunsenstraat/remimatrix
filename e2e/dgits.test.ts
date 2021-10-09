@@ -1,12 +1,16 @@
 import { Selector } from 'testcafe';
 
 fixture`DGIT tests`
-    .page('http://localhost:8080');
+    .page('https://remix.ethereum.org')
+    .beforeEach( async t => {
+        await t.click(Selector('Button').withText('Sure'))
+        .click('.introjs-skipbutton')
+    });
 
 let hash = '';
 
 test('stage files and export', async t => {
-    await t.click('.introjs-skipbutton')
+    await t
         .click('#verticalIconsKindpluginManager')
         .click('[data-id="pluginManagerComponentActivateButtondgit"]')
         .click('[data-id="verticalIconsKinddgit"]')
@@ -24,26 +28,26 @@ test('stage files and export', async t => {
         .click(Selector('.navbutton').withText('IPFS Settings')).click('#btncheckipfs')
         .expect(Selector('#ipfschecksuccess').exists).ok()
         .click(Selector('.navbutton').withText('IPFS Export')).click('#addtocustomipfs')
-        .expect(Selector('#ipfshashresult').exists).ok().takeScreenshot('stagefilesexport')
+        .expect(Selector('#ipfshashresult').exists).ok()
 
     hash = await Selector('#ipfshashresult').textContent;
 })
 
 test('import with hash', async t => {
     console.log('import ', hash)
-    await t.click('.introjs-skipbutton')
+    await t
         .click('#verticalIconsKindpluginManager')
         .click('[data-id="pluginManagerComponentActivateButtondgit"]')
         .click('[data-id="verticalIconsKinddgit"]')
         .switchToIframe("#plugin-dgit")
-        .click(Selector('.navbutton').withText('IPFS Import')).wait(10000)
+        .click(Selector('.navbutton').withText('IPFS Import'))
         //.typeText('.form-control', hash)
         //.click('#clone-btn')
 })
 
 
 test('github import', async t => {
-    await t.click('.introjs-skipbutton')
+    await t
         .click('#verticalIconsKindpluginManager')
         .click('[data-id="pluginManagerComponentActivateButtondgit"]')
         .click('[data-id="verticalIconsKinddgit"]')
