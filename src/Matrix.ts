@@ -5,7 +5,7 @@ import { Visibility } from "matrix-js-sdk/lib/@types/partials";
 import { Alert, AlertProps } from "react-bootstrap";
 import { Variant } from "react-bootstrap/esm/types";
 import { BehaviorSubject } from "rxjs";
-import { client } from "./App";
+import { client, loaderservice } from "./App";
 import { IncomingFile } from "./types/types";
 
 export type Message = {

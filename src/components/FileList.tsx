@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "react-bootstrap";
-import { client, matrixClient } from "../App";
+import { client, loaderservice, matrixClient } from "../App";
 import { IncomingFile, FileListProps } from "../types/types";
 import { faTrash, faExclamationTriangle, faDiceD20, faFolder, faFileImport } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -21,9 +21,12 @@ export const FileListViewer: React.FC<FileListProps> = (fileList) => {
   const clone = async (file: IncomingFile) => {
     if (file.message) {
       try{      
+        loaderservice.setLoading(true)
         await client.call("dGitProvider", "clone" as any, { url:file.message, branch:'', token:'', depth: 10, singleBranch:false });
         await client.call('menuicons' as any, 'select', 'filePanel')
+        loaderservice.setLoading(false)
       }catch(e){
+        loaderservice.setLoading(false)
         throw e
       }
     }
@@ -33,9 +36,12 @@ export const FileListViewer: React.FC<FileListProps> = (fileList) => {
     if (file.message) {
       const parts = file.message.split("ipfs://")
       try{      
+        loaderservice.setLoading(true)
         await client.call('dGitProvider' as any,'import', {cid: parts[1], local: false} )
         await client.call('menuicons' as any, 'select', 'filePanel')
+        loaderservice.setLoading(false)
       }catch(e){
+        loaderservice.setLoading(false)
         throw e
       }
     }
@@ -72,6 +78,12 @@ export const FileListViewer: React.FC<FileListProps> = (fileList) => {
       fieldRef.current.scrollIntoView();
     }
   }, []);
+
+  useEffect(() => {
+    if (fieldRef.current) {
+      fieldRef.current.scrollIntoView();
+    }
+  }, [fileList]);
 
   const handleChange = ({ target }: any) => {
     setMsg(target.value);

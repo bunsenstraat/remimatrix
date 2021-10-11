@@ -32,6 +32,7 @@
     "react-bootstrap": "^1.6.4",
     "react-copy-to-clipboard": "^5.0.4",
     "react-dom": "^17.0.1",
+    "react-fullscreen-loading": "^0.0.4",
     "react-keydown": "^1.9.12",
     "react-scripts": "4.0.1",
     "react-scroll-to-bottom": "^4.1.2",
@@ -47,7 +48,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "deploy": "yarn build && firebase deploy"
   },
   "eslintConfig": {
     "extends": [

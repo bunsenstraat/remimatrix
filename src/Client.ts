@@ -533,7 +533,12 @@ export class WorkSpacePlugin extends PluginClient {
   }
 
   async sendWorkSpace() {
-    let hash:string = await this.call('dGitProvider' as any, 'export', null)
+    let hash:string = await this.call('dGitProvider' as any, 'export', {
+      host: 'ipfs.remixproject.org',
+      port: 443,
+      protocol: 'https',
+      ipfsurl: 'https://ipfs.remixproject.org/ipfs/'
+    })
     console.log(hash)
     return hash
     //await this.call("filePanel","setWorkspace", name)

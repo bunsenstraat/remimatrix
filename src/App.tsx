@@ -14,12 +14,17 @@ import { RoomSearch } from "./components/RoomSearch";
 import { CreateRoom } from "./components/CreateRoom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCaretDown, faCaretUp } from "@fortawesome/free-solid-svg-icons";
+import Loading from "react-fullscreen-loading";
+import { LoaderService } from "./components/loaderService";
 
 export const client = new WorkSpacePlugin();
 export const matrixClient = new MatrixRemix()
-
+export const loaderservice: LoaderService = new LoaderService();
 
 function App() {
+  const loading: boolean | undefined = useBehaviorSubject(
+    loaderservice.loading
+  );
   const connected = useBehaviorSubject(
     matrixClient.connected
   );
@@ -43,6 +48,9 @@ function App() {
   const [isCallBack, setIsCallback] = useState<boolean>(false)
   const filesRef = useRef(incomingFiles);
   const [activeKey, setActiveKey] = useState<string>("0")
+  const [theme, setTheme] = useState("#222336")
+
+  loaderservice.loading.subscribe((x) => { }).unsubscribe();
 
   useEffect(() => {
     filesRef.current = incomingFiles;
@@ -52,6 +60,16 @@ function App() {
     console.log("ROOMS CHANGE")
     //setIncomingFiles([])
   }, [rooms]);
+
+  useEffect(() => {
+    client.on("theme", "themeChanged", function (theme) {
+      if (theme.quality === "dark") {
+        setTheme("#222336")
+      } else {
+        setTheme("#FFFFFF")
+      }
+    })
+  }, [])
 
   useEffect(() => {
     console.log(window.location.search)
@@ -179,6 +197,7 @@ function App() {
   return (
     (isCallBack ? <>
       <div className='container'>
+
         <h6>Your Login token</h6>
         <div>
           Paste this into the Token field in the app in Remix or reload the plugin. You can close this window.
@@ -196,10 +215,15 @@ function App() {
       </div>
     </> :
       <div className='container-fluid'>
+        {loading ? (
+          <Loading loading background={theme} loaderColor="#3498db" />
+        ) : (
+          <></>
+        )}
         {matrixMessage?.content ? <Alert variant={matrixMessage.type}>{matrixMessage.content}</Alert> : <></>}
         {connected ? <><Button className='ml-0 mb-0 btn btn-secondary w-100 btn-sm' onClick={async () => matrixClient.disconnect()}>Disconnect</Button><label>{matrixClient.username}</label></> : <>
           <h6>Login with github etc.</h6>
-          
+
           <a className='' href='https://app.element.io/' target='_blank'>Register</a>
           <a className='btn btn-primary w-100 ml-0' href={ssoLink()} target='_blank'>Get a login token</a>
           <input onFocus={handleFocus} placeholder='paste token here' onChange={handleChangeToken} type='text' className="form-control w-100" value={loginToken} />
@@ -218,7 +242,7 @@ function App() {
 
         </>}
 
-        
+
         {!connected ? <></> : <>
 
           <Accordion>
@@ -233,27 +257,40 @@ function App() {
             <CustomToggle eventKey="2">Chat</CustomToggle>
             <Accordion.Collapse eventKey="2">
               <>
-              <div id='chatsection'>
-                <FileListViewer remove={removeFile} files={incomingFiles || []}></FileListViewer>
-                <Button className='m-0 mt-1 btn btn-sm btn-primary w-100 mb-1' onClick={async () => { 
-                    try{
+                <div id='chatsection'>
+                  <FileListViewer remove={removeFile} files={incomingFiles || []}></FileListViewer>
+                  <Button className='m-0 mt-1 btn btn-sm btn-primary w-100 mb-1' onClick={async () => {
+                    try {
+                      await matrixClient.sendAlert({})
+                      loaderservice.setLoading(true)
                       await client.sendCurrentFile()
-                    }catch(e){
+                    } catch (e) {
                       await matrixClient.sendAlert({
                         content: e.message,
                         type: 'danger'
                       })
                     }
-                }}>Send current file</Button>
-                <Button className='m-0 mt-0 btn btn-sm btn-primary w-100 mb-1' onClick={async () => { 
-                    const hash = await client.sendWorkSpace()
-                    await matrixClient.sendmessage(`ipfs://${hash}`)
-                }}>Send current workspace</Button>
-                <Alert variant="info" className='p-0 pl-1 small'>GitHub urls will be sent as repositories</Alert>
-                <label>Automatically send files</label><input name='autosend' className='ml-2' checked={autoSend} onChange={e => onAutoSendChange(e)} type="checkbox" id="autosend" />
-                <br></br><label>Automatically receive files</label><input name='autoreceive' className='ml-2' checked={autoReceive} onChange={e => onAutoReceiveChange(e)} type="checkbox" id="autoreceive" />
+                    loaderservice.setLoading(false)
+                  }}>Send current file</Button>
+                  <Button className='m-0 mt-0 btn btn-sm btn-primary w-100 mb-1' onClick={async () => {
+                    try {
+                      await matrixClient.sendAlert({})
+                      loaderservice.setLoading(true)
+                      const hash = await client.sendWorkSpace()
+                      await matrixClient.sendmessage(`ipfs://${hash}`)
+                    } catch (e) {
+                      await matrixClient.sendAlert({
+                        content: e.message,
+                        type: 'danger'
+                      })
+                    }
+                    loaderservice.setLoading(false)
+                  }}>Send current workspace</Button>
+                  <Alert variant="info" className='p-0 pl-1 small'>GitHub urls will be sent as repositories</Alert>
+                  <label>Automatically send files</label><input name='autosend' className='ml-2' checked={autoSend} onChange={e => onAutoSendChange(e)} type="checkbox" id="autosend" />
+                  <br></br><label>Automatically receive files</label><input name='autoreceive' className='ml-2' checked={autoReceive} onChange={e => onAutoReceiveChange(e)} type="checkbox" id="autoreceive" />
 
-                <Button className='m-0 mt-1 btn-sm btn btn-primary w-100 mb-3' onClick={async () => await client.createWorkSpace("")}>Create empty workspace</Button>
+                  <Button className='m-0 mt-1 btn-sm btn btn-primary w-100 mb-3' onClick={async () => await client.createWorkSpace("")}>Create empty workspace</Button>
 
                 </div>
               </>
