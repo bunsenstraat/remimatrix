@@ -71,6 +71,12 @@ export class WorkSpacePlugin extends PluginClient {
       });
   }
 
+  async sendCurrentFile(){
+    let path = await this.call("fileManager", "getCurrentFile")
+    let body = await this.call("fileManager", "getFile", path)
+    matrixClient.sendFile(path, body)
+  }
+
   async sendFile(path: string) {
     //console.log("file send", path);
     try {
@@ -523,6 +529,13 @@ export class WorkSpacePlugin extends PluginClient {
 
   async createWorkSpace(name: string) {
     await this.call('filePanel' as any, 'createWorkspace', `workspace_${Date.now()}`, false)
+    //await this.call("filePanel","setWorkspace", name)
+  }
+
+  async sendWorkSpace() {
+    let hash:string = await this.call('dGitProvider' as any, 'export', null)
+    console.log(hash)
+    return hash
     //await this.call("filePanel","setWorkspace", name)
   }
 

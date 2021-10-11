@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Button } from "react-bootstrap";
 import { client, matrixClient } from "../App";
 import { IncomingFile, FileListProps } from "../types/types";
-import { faTrash, faExclamationTriangle, faDiceD20 } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faExclamationTriangle, faDiceD20, faFolder, faFileImport } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { default as dateFormat } from 'dateformat'
 
@@ -16,6 +16,18 @@ export const FileListViewer: React.FC<FileListProps> = (fileList) => {
     if (file.fileName) {
       await client.write(file.fileName, file.body || "")
       //fileList.remove(file)
+    }
+  }
+
+  const importWorkspace = async (file: IncomingFile) => {
+    if (file.message) {
+      const parts = file.message.split("ipfs://")
+      try{      
+        await client.call('dGitProvider' as any,'import', {cid: parts[1], local: false} )
+        await client.call('menuicons' as any, 'select', 'filePanel')
+      }catch(e){
+        throw e
+      }
     }
   }
   function sendmsg(event: any) {
@@ -49,9 +61,10 @@ export const FileListViewer: React.FC<FileListProps> = (fileList) => {
 
             <li className="list-group-item ml-0 pl-1">
               <div className='small text-muted'>{file.userId}<br></br>{dateFormat(file.timestamp, "dd, mmmm h:MM:ss TT")}</div>
-              <Button className='badge badge-pill badge-primary mb-0' onClick={async () => importFile(file)}>{file.fileName}</Button>
+              <Button className='badge badge-pill badge-primary mb-0' onClick={async () => await importFile(file)}>{file.fileName}</Button>
               {file.message ?
-                <div className='small'>{file.message}</div> : <></>}
+                file.message.includes('ipfs://')? <Button className='w-100 badge badge-pill badge-info mb-0 text-truncate' onClick={async () => await importWorkspace(file)}><FontAwesomeIcon icon={faFileImport} /> workspace : {file.message}</Button>:<div className='small text-break w-100'>{file.message}</div>
+                 : <></>}
             </li>
 
           </>)
@@ -62,7 +75,7 @@ export const FileListViewer: React.FC<FileListProps> = (fileList) => {
     </div>
     <form onSubmit={sendmsg}>
       <input placeholder='Enter to send' className='form-control w-100' type="text" value={message} onChange={handleChange} />
-      <input className='btn btn-primary ml-0 w-100' type="submit" value="send" />
+      <input className='btn btn-primary ml-0 w-100 d-none' type="submit" value="send" />
     </form>
 
 

@@ -42,6 +42,7 @@ function App() {
   const [loginToken, setLoginToken] = useLocalStorage('token', '')
   const [isCallBack, setIsCallback] = useState<boolean>(false)
   const filesRef = useRef(incomingFiles);
+  const [activeKey, setActiveKey] = useState<string>("0")
 
   useEffect(() => {
     filesRef.current = incomingFiles;
@@ -220,23 +221,38 @@ function App() {
         <hr></hr>
         {!connected ? <></> : <>
 
-          <Accordion>
-            <CustomToggle eventKey="0">Rooms</CustomToggle>
-            <Accordion.Collapse eventKey="0">
+          <Accordion activeKey={activeKey}>
+            <CustomToggle eventKey="1">Rooms</CustomToggle>
+            <Accordion.Collapse eventKey="1">
               <>
                 <RoomSelector rooms={[]}></RoomSelector>
                 <RoomSearch></RoomSearch>
                 <CreateRoom></CreateRoom>
               </>
             </Accordion.Collapse>
-            <CustomToggle eventKey="1">Chat</CustomToggle>
-            <Accordion.Collapse eventKey="1">
+            <CustomToggle eventKey="2">Chat</CustomToggle>
+            <Accordion.Collapse eventKey="2">
               <>
                 <FileListViewer remove={removeFile} files={incomingFiles || []}></FileListViewer>
+                <Button className='m-0 mt-1 btn btn-primary w-100 mb-3' onClick={async () => { 
+                    try{
+                      await client.sendCurrentFile()
+                    }catch(e){
+                      await matrixClient.sendAlert({
+                        content: e.message,
+                        type: 'danger'
+                      })
+                    }
+                }}>Send current file</Button>
+                <Button className='m-0 mt-1 btn btn-primary w-100 mb-3' onClick={async () => { 
+                    const hash = await client.sendWorkSpace()
+                    await matrixClient.sendmessage(`ipfs://${hash}`)
+                }}>Send current workspace</Button>
                 <label>Automatically send files</label><input name='autosend' className='ml-2' checked={autoSend} onChange={e => onAutoSendChange(e)} type="checkbox" id="autosend" />
                 <br></br><label>Automatically receive files</label><input name='autoreceive' className='ml-2' checked={autoReceive} onChange={e => onAutoReceiveChange(e)} type="checkbox" id="autoreceive" />
 
-                <Button className='m-0 mt-1 btn btn-primary w-100 mb-3' onClick={async () => client.createWorkSpace("")}>Create empty workspace</Button>
+                <Button className='m-0 mt-1 btn btn-primary w-100 mb-3' onClick={async () => await client.createWorkSpace("")}>Create empty workspace</Button>
+
 
               </>
             </Accordion.Collapse>

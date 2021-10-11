@@ -258,6 +258,10 @@ export class MatrixRemix {
         }
     }
 
+    async sendAlert(msg: Message){
+        this.message.next(msg)
+    }
+
     async sendmessage(body: string) {
         if (!this.accessToken) return
         const content: sdk.IContent = {
