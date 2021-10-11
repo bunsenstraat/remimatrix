@@ -197,7 +197,7 @@ function App() {
     </> :
       <div className='container-fluid'>
         {matrixMessage?.content ? <Alert variant={matrixMessage.type}>{matrixMessage.content}</Alert> : <></>}
-        {connected ? <><Button className='ml-0 btn btn-secondary w-100' onClick={async () => matrixClient.disconnect()}>Disconnect</Button>{matrixClient.username} </> : <>
+        {connected ? <><Button className='ml-0 mb-0 btn btn-secondary w-100 btn-sm' onClick={async () => matrixClient.disconnect()}>Disconnect</Button><label>{matrixClient.username}</label></> : <>
           <h6>Login with github etc.</h6>
           
           <a className='' href='https://app.element.io/' target='_blank'>Register</a>
@@ -218,10 +218,10 @@ function App() {
 
         </>}
 
-        <hr></hr>
+        
         {!connected ? <></> : <>
 
-          <Accordion activeKey={activeKey}>
+          <Accordion>
             <CustomToggle eventKey="1">Rooms</CustomToggle>
             <Accordion.Collapse eventKey="1">
               <>
@@ -233,8 +233,9 @@ function App() {
             <CustomToggle eventKey="2">Chat</CustomToggle>
             <Accordion.Collapse eventKey="2">
               <>
+              <div id='chatsection'>
                 <FileListViewer remove={removeFile} files={incomingFiles || []}></FileListViewer>
-                <Button className='m-0 mt-1 btn btn-primary w-100 mb-3' onClick={async () => { 
+                <Button className='m-0 mt-1 btn btn-sm btn-primary w-100 mb-1' onClick={async () => { 
                     try{
                       await client.sendCurrentFile()
                     }catch(e){
@@ -244,16 +245,17 @@ function App() {
                       })
                     }
                 }}>Send current file</Button>
-                <Button className='m-0 mt-1 btn btn-primary w-100 mb-3' onClick={async () => { 
+                <Button className='m-0 mt-0 btn btn-sm btn-primary w-100 mb-1' onClick={async () => { 
                     const hash = await client.sendWorkSpace()
                     await matrixClient.sendmessage(`ipfs://${hash}`)
                 }}>Send current workspace</Button>
+                <Alert variant="info" className='p-0 pl-1 small'>GitHub urls will be sent as repositories</Alert>
                 <label>Automatically send files</label><input name='autosend' className='ml-2' checked={autoSend} onChange={e => onAutoSendChange(e)} type="checkbox" id="autosend" />
                 <br></br><label>Automatically receive files</label><input name='autoreceive' className='ml-2' checked={autoReceive} onChange={e => onAutoReceiveChange(e)} type="checkbox" id="autoreceive" />
 
-                <Button className='m-0 mt-1 btn btn-primary w-100 mb-3' onClick={async () => await client.createWorkSpace("")}>Create empty workspace</Button>
+                <Button className='m-0 mt-1 btn-sm btn btn-primary w-100 mb-3' onClick={async () => await client.createWorkSpace("")}>Create empty workspace</Button>
 
-
+                </div>
               </>
             </Accordion.Collapse>
           </Accordion>

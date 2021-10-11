@@ -18,6 +18,16 @@ export const FileListViewer: React.FC<FileListProps> = (fileList) => {
       //fileList.remove(file)
     }
   }
+  const clone = async (file: IncomingFile) => {
+    if (file.message) {
+      try{      
+        await client.call("dGitProvider", "clone" as any, { url:file.message, branch:'', token:'', depth: 10, singleBranch:false });
+        await client.call('menuicons' as any, 'select', 'filePanel')
+      }catch(e){
+        throw e
+      }
+    }
+  }
 
   const importWorkspace = async (file: IncomingFile) => {
     if (file.message) {
@@ -43,6 +53,20 @@ export const FileListViewer: React.FC<FileListProps> = (fileList) => {
 
   }
 
+  function previewWorkspace(file: IncomingFile){
+    if (file.message) {
+      const parts = file.message.split("ipfs://")
+      const url = `https://ipfs.remixproject.org/ipfs/${parts[1]}`
+      return <a className='small ml-2' rel="noreferrer" target='_blank' href={url}>preview</a>
+    }
+  }
+
+  function previewGitHub(file: IncomingFile){
+    if (file.message) {
+      return <a className='small ml-2' rel="noreferrer" target='_blank' href={file.message}>preview</a>
+    }
+  }
+
   useEffect(() => {
     if (fieldRef.current) {
       fieldRef.current.scrollIntoView();
@@ -63,7 +87,10 @@ export const FileListViewer: React.FC<FileListProps> = (fileList) => {
               <div className='small text-muted'>{file.userId}<br></br>{dateFormat(file.timestamp, "dd, mmmm h:MM:ss TT")}</div>
               <Button className='badge badge-pill badge-primary mb-0' onClick={async () => await importFile(file)}>{file.fileName}</Button>
               {file.message ?
-                file.message.includes('ipfs://')? <Button className='w-100 badge badge-pill badge-info mb-0 text-truncate' onClick={async () => await importWorkspace(file)}><FontAwesomeIcon icon={faFileImport} /> workspace : {file.message}</Button>:<div className='small text-break w-100'>{file.message}</div>
+                file.message.includes('ipfs://')? <><Button className='w-100 badge badge-pill badge-info mb-0 text-truncate' onClick={async () => await importWorkspace(file)}><FontAwesomeIcon icon={faFileImport} /> workspace : {file.message}</Button><br></br>{previewWorkspace(file)}</>:
+                file.message.includes('github.com')? <><Button className='w-100 badge badge-pill badge-dark mb-0 text-truncate' onClick={async () => await clone(file)}><FontAwesomeIcon icon={faFileImport} /> github : {file.message}</Button><br></br>{previewGitHub(file)}</>:
+  
+                <div className='small text-break w-100'>{file.message}</div>
                  : <></>}
             </li>
 
